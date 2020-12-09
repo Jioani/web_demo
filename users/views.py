@@ -15,9 +15,11 @@ def register(request):
 
 
 def login(request):
+    username = request.session.get("username")
+    if username:
+        return HttpResponse("用户%s已登录" % username)
     if request.method == "GET":
-        username = request.COOKIES.get("username", "")
-        return render(request, "login.html", context={"username": username})
+        return render(request, "login.html")
     else:
         username = request.POST.get("username")
         password = request.POST.get("password")
@@ -27,7 +29,8 @@ def login(request):
     except Exception:
         return JsonResponse({"message": "login failed"})
     else:
-        response = JsonResponse({"message": "login success"})
-        if remember == "true":
-            response.set_cookie("username", username, max_age=14 * 24 * 3600)
-        return response
+        request.session["user_id"] = user.id
+        request.session["username"] = user.username
+        if remember != "true":
+            request.session.set_expiry(0)
+        return JsonResponse({"message": "login success"})
