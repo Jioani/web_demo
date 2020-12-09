@@ -8,8 +8,10 @@ def register(request):
     if request.method == "GET":
         return render(request, "register.html")
     else:
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        import json
+        res_data = json.loads(request.body)
+        username = res_data.get("username")
+        password = res_data.get("password")
         User.objects.create(username=username, password=password)
         return redirect("/login/")
 
@@ -34,3 +36,17 @@ def login(request):
         if remember != "true":
             request.session.set_expiry(0)
         return JsonResponse({"message": "login success"})
+
+
+def users(request, id):
+    try:
+        user = User.objects.get(id=id)
+    except Exception:
+        return JsonResponse({"message": "Not Found"})
+    else:
+        req_dict = {
+            "id": user.id,
+            "username": user.username,
+            "age": user.age
+        }
+        return JsonResponse(req_dict)
